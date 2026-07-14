@@ -1,6 +1,10 @@
 /target
 node_modules/
-dist-js/
+# dist-js is COMMITTED for now: pendi consumes this repo as a git dependency,
+# and pnpm 10's git-dep prepare allowlist is unreliable (pnpm#10522) — a
+# committed build needs no install-time scripts. Drop it (and restore the
+# prepare script) once the package is on npm.
+# dist-js/
 /.tauri
 /ios/.build
 /ios/.tauri

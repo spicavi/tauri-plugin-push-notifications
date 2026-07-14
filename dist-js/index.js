@@ -1,0 +1,72 @@
+import { invoke, addPluginListener } from '@tauri-apps/api/core';
+
+// ---------------------------------------------------------------------------
+// Commands
+// ---------------------------------------------------------------------------
+/** Whether notification permission is currently granted. Desktop: `false`. */
+async function isPermissionGranted() {
+    const status = await invoke('plugin:push-notifications|is_permission_granted');
+    return status.granted;
+}
+/**
+ * Ensure notification permission, prompting if the OS still allows a prompt.
+ * A denial is an answer (`false`), not an error. Desktop: `false`.
+ */
+async function requestPermission() {
+    const status = await invoke('plugin:push-notifications|request_permission');
+    return status.granted;
+}
+/**
+ * Register this device for push and return its token — the APNs hex device
+ * token on iOS, the FCM registration token on Android. Hand it to your
+ * server; it is the address notifications are sent to.
+ *
+ * Rejects when permission is not granted, when the app lacks the platform
+ * prerequisites (iOS: the `aps-environment` entitlement; Android: Firebase
+ * configuration), or on desktop.
+ *
+ * Tokens can rotate: call this on every launch/login and re-register the
+ * result server-side rather than caching it.
+ */
+async function registerForPush() {
+    const registration = await invoke('plugin:push-notifications|register_for_push');
+    return registration.token;
+}
+// ---------------------------------------------------------------------------
+// Events
+// ---------------------------------------------------------------------------
+/**
+ * Arm native event delivery. `trigger()` only reaches registered channels,
+ * so anything that fired before the first listener existed (most importantly
+ * the cold-start tap that launched the app) is queued natively and replayed
+ * the moment this runs. Idempotent; failures are swallowed (desktop hosts
+ * have nothing to arm).
+ */
+async function armDelivery() {
+    await invoke('plugin:push-notifications|start_notification_events').catch(() => {
+        /* desktop / arming is best-effort */
+    });
+}
+/**
+ * A push arrived while the app is in the FOREGROUND. The system shows
+ * nothing for these (the app owns its in-app surface — show your own
+ * toast/banner); background pushes go to the system tray instead and arrive
+ * only as {@link onNotificationTapped} if the user taps them.
+ */
+async function onNotificationReceived(handler) {
+    const listener = await addPluginListener('push-notifications', 'notificationReceived', handler);
+    await armDelivery();
+    return listener;
+}
+/**
+ * The user tapped a notification — from the tray, or the tap that launched
+ * the app cold (replayed on registration, never lost). Route `data`'s
+ * deep-link fields here.
+ */
+async function onNotificationTapped(handler) {
+    const listener = await addPluginListener('push-notifications', 'notificationTapped', handler);
+    await armDelivery();
+    return listener;
+}
+
+export { isPermissionGranted, onNotificationReceived, onNotificationTapped, registerForPush, requestPermission };
