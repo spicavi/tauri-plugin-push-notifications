@@ -1,0 +1,38 @@
+[package]
+name = "tauri-plugin-push-notifications"
+version = "0.1.0"
+authors = ["spicavi <avisaksham@gmail.com>"]
+license = "MIT"
+description = "Push notifications for Tauri 2 apps — APNs device tokens on iOS, FCM on Android, with foreground-receive and tap events."
+edition = "2021"
+rust-version = "1.77.2"
+readme = "README.md"
+repository = "https://github.com/spicavi/tauri-plugin-push-notifications"
+# crates.io: max 5, only [a-z0-9-_], must start with a letter, ≤20 chars each.
+keywords = ["tauri", "tauri-plugin", "push", "apns", "fcm"]
+categories = ["api-bindings"]
+exclude = [
+  "/examples",
+  "/dist-js",
+  "/guest-js",
+  "/node_modules",
+  "/.tauri",
+  "/ios/.build",
+  "/ios/.tauri",
+  "/android/build",
+  "/android/.gradle",
+  "/android/.tauri",
+  "package.json",
+  "pnpm-lock.yaml",
+  "tsconfig.json",
+  "rollup.config.js",
+]
+links = "tauri-plugin-push-notifications"
+
+[dependencies]
+tauri = { version = "2.10" }
+serde = "1.0"
+thiserror = "2"
+
+[build-dependencies]
+tauri-plugin = { version = "2.5", features = ["build"] }

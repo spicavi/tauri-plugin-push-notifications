@@ -1,0 +1,26 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+description = """
+Default permissions for the push-notifications plugin.
+
+#### Granted Permissions
+
+- Permission reads and the OS permission prompt (`is_permission_granted`,
+  `request_permission`).
+- Push registration (`register_for_push`) — returns the device token.
+- Notification events (`register_listener`, `remove_listener`,
+  `start_notification_events`).
+
+Note: these are Tauri IPC permissions. Delivery is additionally gated by the
+OS notification permission — nothing arrives unless the user granted the
+system prompt.
+"""
+permissions = [
+  "allow-is-permission-granted",
+  "allow-request-permission",
+  "allow-register-for-push",
+  "allow-start-notification-events",
+  "allow-register-listener",
+  "allow-remove-listener",
+]
