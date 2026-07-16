@@ -24,6 +24,10 @@ package app.tauri.pushnotifications
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlarmManager
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Handler
@@ -31,6 +35,7 @@ import android.os.Looper
 import android.webkit.WebView
 import app.tauri.PermissionState
 import app.tauri.annotation.Command
+import app.tauri.annotation.InvokeArg
 import app.tauri.annotation.Permission
 import app.tauri.annotation.PermissionCallback
 import app.tauri.annotation.TauriPlugin
@@ -41,6 +46,22 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.RemoteMessage
 
 private const val PERMISSION_ALIAS = "postNotification"
+
+// Local-notification command payloads (mirror src/models.rs / guest-js).
+
+@InvokeArg
+class ScheduleLocalArgs {
+    var id: Int = 0
+    lateinit var title: String
+    var body: String? = null
+    var atMs: Double = 0.0
+    var data: Map<String, String>? = null
+}
+
+@InvokeArg
+class CancelLocalArgs {
+    var ids: List<Int> = emptyList()
+}
 
 @TauriPlugin(
     permissions = [
@@ -123,6 +144,68 @@ class PushNotificationsPlugin(private val activity: Activity) : Plugin(activity)
         }
     }
 
+    // MARK: Local scheduled notifications (reminders)
+
+    /** Schedule an OS-local notification via AlarmManager. Same-id scheduling
+     *  replaces the pending alarm (FLAG_UPDATE_CURRENT on a same-requestCode
+     *  PendingIntent) — the resync primitive. Inexact-while-idle: minute-ish
+     *  precision without the SCHEDULE_EXACT_ALARM policy surface. Alarms do
+     *  not survive reboot; callers resync on next launch. */
+    @Command
+    fun scheduleLocal(invoke: Invoke) {
+        val id = invoke.parseArgs(ScheduleLocalArgs::class.java)
+        val alarm = activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarm.setAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            id.atMs.toLong(),
+            publisherIntent(id.id) { intent ->
+                intent.putExtra(EXTRA_TITLE, id.title)
+                id.body?.let { intent.putExtra(EXTRA_BODY, it) }
+                id.data?.let { intent.putExtra(EXTRA_DATA, HashMap(it)) }
+            },
+        )
+        ledgerUpdate(activity) { it.add(id.id.toString()) }
+        invoke.resolve()
+    }
+
+    @Command
+    fun cancelLocal(invoke: Invoke) {
+        val args = invoke.parseArgs(CancelLocalArgs::class.java)
+        val alarm = activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val manager =
+            activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        for (id in args.ids) {
+            alarm.cancel(publisherIntent(id) {})
+            manager.cancel(id)
+        }
+        ledgerUpdate(activity) { set -> args.ids.forEach { set.remove(it.toString()) } }
+        invoke.resolve()
+    }
+
+    /** Scheduled-but-not-fired ids from the SharedPreferences ledger (Android
+     *  has no AlarmManager query API). Reboot drops the alarms but not the
+     *  ledger — callers treating this as advisory should resync anyway. */
+    @Command
+    fun getPendingLocal(invoke: Invoke) {
+        val prefs = activity.getSharedPreferences(LEDGER_PREFS, Context.MODE_PRIVATE)
+        val ids = prefs.getStringSet(LEDGER_KEY, emptySet())!!.mapNotNull { it.toIntOrNull() }
+        val payload = JSObject()
+        payload.put("ids", org.json.JSONArray(ids))
+        invoke.resolve(payload)
+    }
+
+    private fun publisherIntent(id: Int, fill: (Intent) -> Unit): PendingIntent {
+        val intent = Intent(activity, LocalNotificationPublisher::class.java)
+        intent.putExtra(EXTRA_ID, id)
+        fill(intent)
+        return PendingIntent.getBroadcast(
+            activity,
+            id,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
     // MARK: Delivery (from PushNotificationsService)
 
     internal fun deliverForegroundMessage(message: RemoteMessage) {
@@ -149,12 +232,17 @@ class PushNotificationsPlugin(private val activity: Activity) : Plugin(activity)
 
     private fun readTapIntent(intent: Intent) {
         val extras = intent.extras ?: return
-        // Only intents FCM stamped — a plain launch/deep-link intent is not
-        // a notification tap.
-        extras.getString("google.message_id") ?: return
+        // Only intents FCM stamped or our own local-notification marker — a
+        // plain launch/deep-link intent is not a notification tap.
+        if (extras.getString("google.message_id") == null &&
+            extras.getString(LOCAL_TAP_MARKER) == null
+        ) {
+            return
+        }
         val data = JSObject()
         for (key in extras.keySet()) {
             if (key.startsWith("google.") || key.startsWith("gcm.") ||
+                key.startsWith("app.tauri.pushnotifications") ||
                 key == "from" || key == "collapse_key"
             ) {
                 continue

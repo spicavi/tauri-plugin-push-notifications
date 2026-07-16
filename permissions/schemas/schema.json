@@ -295,6 +295,30 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the cancel_local command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-cancel-local",
+          "markdownDescription": "Enables the cancel_local command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the cancel_local command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-cancel-local",
+          "markdownDescription": "Denies the cancel_local command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the get_pending_local command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-get-pending-local",
+          "markdownDescription": "Enables the get_pending_local command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the get_pending_local command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-get-pending-local",
+          "markdownDescription": "Denies the get_pending_local command without any pre-configured scope."
+        },
+        {
           "description": "Enables the is_permission_granted command without any pre-configured scope.",
           "type": "string",
           "const": "allow-is-permission-granted",
@@ -355,6 +379,18 @@
           "markdownDescription": "Denies the request_permission command without any pre-configured scope."
         },
         {
+          "description": "Enables the schedule_local command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-schedule-local",
+          "markdownDescription": "Enables the schedule_local command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the schedule_local command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-schedule-local",
+          "markdownDescription": "Denies the schedule_local command without any pre-configured scope."
+        },
+        {
           "description": "Enables the start_notification_events command without any pre-configured scope.",
           "type": "string",
           "const": "allow-start-notification-events",
@@ -367,10 +403,10 @@
           "markdownDescription": "Denies the start_notification_events command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for the push-notifications plugin.\n\n#### Granted Permissions\n\n- Permission reads and the OS permission prompt (`is_permission_granted`,\n  `request_permission`).\n- Push registration (`register_for_push`) — returns the device token.\n- Notification events (`register_listener`, `remove_listener`,\n  `start_notification_events`).\n\nNote: these are Tauri IPC permissions. Delivery is additionally gated by the\nOS notification permission — nothing arrives unless the user granted the\nsystem prompt.\n\n#### This default permission set includes:\n\n- `allow-is-permission-granted`\n- `allow-request-permission`\n- `allow-register-for-push`\n- `allow-start-notification-events`\n- `allow-register-listener`\n- `allow-remove-listener`",
+          "description": "Default permissions for the push-notifications plugin.\n\n#### Granted Permissions\n\n- Permission reads and the OS permission prompt (`is_permission_granted`,\n  `request_permission`).\n- Push registration (`register_for_push`) — returns the device token.\n- Notification events (`register_listener`, `remove_listener`,\n  `start_notification_events`).\n- Local scheduled notifications (`schedule_local`, `cancel_local`,\n  `get_pending_local`) — OS-local reminders, no server involved.\n\nNote: these are Tauri IPC permissions. Delivery is additionally gated by the\nOS notification permission — nothing arrives unless the user granted the\nsystem prompt.\n\n#### This default permission set includes:\n\n- `allow-is-permission-granted`\n- `allow-request-permission`\n- `allow-register-for-push`\n- `allow-start-notification-events`\n- `allow-register-listener`\n- `allow-remove-listener`\n- `allow-schedule-local`\n- `allow-cancel-local`\n- `allow-get-pending-local`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for the push-notifications plugin.\n\n#### Granted Permissions\n\n- Permission reads and the OS permission prompt (`is_permission_granted`,\n  `request_permission`).\n- Push registration (`register_for_push`) — returns the device token.\n- Notification events (`register_listener`, `remove_listener`,\n  `start_notification_events`).\n\nNote: these are Tauri IPC permissions. Delivery is additionally gated by the\nOS notification permission — nothing arrives unless the user granted the\nsystem prompt.\n\n#### This default permission set includes:\n\n- `allow-is-permission-granted`\n- `allow-request-permission`\n- `allow-register-for-push`\n- `allow-start-notification-events`\n- `allow-register-listener`\n- `allow-remove-listener`"
+          "markdownDescription": "Default permissions for the push-notifications plugin.\n\n#### Granted Permissions\n\n- Permission reads and the OS permission prompt (`is_permission_granted`,\n  `request_permission`).\n- Push registration (`register_for_push`) — returns the device token.\n- Notification events (`register_listener`, `remove_listener`,\n  `start_notification_events`).\n- Local scheduled notifications (`schedule_local`, `cancel_local`,\n  `get_pending_local`) — OS-local reminders, no server involved.\n\nNote: these are Tauri IPC permissions. Delivery is additionally gated by the\nOS notification permission — nothing arrives unless the user granted the\nsystem prompt.\n\n#### This default permission set includes:\n\n- `allow-is-permission-granted`\n- `allow-request-permission`\n- `allow-register-for-push`\n- `allow-start-notification-events`\n- `allow-register-listener`\n- `allow-remove-listener`\n- `allow-schedule-local`\n- `allow-cancel-local`\n- `allow-get-pending-local`"
         }
       ]
     }

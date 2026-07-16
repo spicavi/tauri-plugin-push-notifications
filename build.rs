@@ -9,6 +9,10 @@ const COMMANDS: &[&str] = &[
     "start_notification_events",
     "register_listener",
     "remove_listener",
+    // OS-local scheduled notifications (reminders): same tap pipeline as push.
+    "schedule_local",
+    "cancel_local",
+    "get_pending_local",
 ];
 
 fn main() {

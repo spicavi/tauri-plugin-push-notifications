@@ -32,6 +32,26 @@ async function registerForPush() {
     const registration = await invoke('plugin:push-notifications|register_for_push');
     return registration.token;
 }
+/**
+ * Schedule an OS-local notification. iOS: `UNTimeIntervalNotificationTrigger`
+ * (survives app termination, not device restart-before-fire edge cases).
+ * Android: inexact `AlarmManager` while-idle alarm (minute-ish precision; does
+ * NOT survive reboot) — resync by re-scheduling on every launch.
+ * Desktop: rejects with `Unsupported`.
+ */
+async function scheduleLocalNotification(notification) {
+    await invoke('plugin:push-notifications|schedule_local', { notification });
+}
+/** Cancel pending (and dismiss delivered) local notifications by id. */
+async function cancelLocalNotifications(ids) {
+    await invoke('plugin:push-notifications|cancel_local', { ids });
+}
+/** Ids of scheduled-but-not-yet-fired local notifications. Advisory on
+ *  Android (a ledger — reboot drops alarms without updating it). */
+async function getPendingLocalNotifications() {
+    const pending = await invoke('plugin:push-notifications|get_pending_local');
+    return pending.ids;
+}
 // ---------------------------------------------------------------------------
 // Events
 // ---------------------------------------------------------------------------
@@ -69,4 +89,4 @@ async function onNotificationTapped(handler) {
     return listener;
 }
 
-export { isPermissionGranted, onNotificationReceived, onNotificationTapped, registerForPush, requestPermission };
+export { cancelLocalNotifications, getPendingLocalNotifications, isPermissionGranted, onNotificationReceived, onNotificationTapped, registerForPush, requestPermission, scheduleLocalNotification };

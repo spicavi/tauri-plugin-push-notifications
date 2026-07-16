@@ -31,3 +31,21 @@ pub(crate) async fn register_for_push<R: Runtime>(app: AppHandle<R>) -> Result<P
 pub(crate) async fn start_notification_events<R: Runtime>(app: AppHandle<R>) -> Result<()> {
     app.push_notifications().start_notification_events().await
 }
+
+#[command]
+pub(crate) async fn schedule_local<R: Runtime>(
+    app: AppHandle<R>,
+    notification: LocalNotification,
+) -> Result<()> {
+    app.push_notifications().schedule_local(notification).await
+}
+
+#[command]
+pub(crate) async fn cancel_local<R: Runtime>(app: AppHandle<R>, ids: Vec<i32>) -> Result<()> {
+    app.push_notifications().cancel_local(ids).await
+}
+
+#[command]
+pub(crate) async fn get_pending_local<R: Runtime>(app: AppHandle<R>) -> Result<PendingLocal> {
+    app.push_notifications().get_pending_local().await
+}

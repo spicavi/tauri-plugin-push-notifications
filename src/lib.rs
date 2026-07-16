@@ -71,6 +71,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             commands::request_permission,
             commands::register_for_push,
             commands::start_notification_events,
+            commands::schedule_local,
+            commands::cancel_local,
+            commands::get_pending_local,
         ])
         .setup(|app, api| {
             #[cfg(mobile)]

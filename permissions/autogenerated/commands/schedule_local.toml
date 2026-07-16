@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-schedule-local"
+description = "Enables the schedule_local command without any pre-configured scope."
+commands.allow = ["schedule_local"]
+
+[[permission]]
+identifier = "deny-schedule-local"
+description = "Denies the schedule_local command without any pre-configured scope."
+commands.deny = ["schedule_local"]

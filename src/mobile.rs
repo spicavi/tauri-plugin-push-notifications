@@ -64,4 +64,25 @@ impl<R: Runtime> PushNotifications<R> {
             .await
             .map_err(Into::into)
     }
+
+    pub async fn schedule_local(&self, notification: LocalNotification) -> crate::Result<()> {
+        self.0
+            .run_mobile_plugin_async("scheduleLocal", notification)
+            .await
+            .map_err(Into::into)
+    }
+
+    pub async fn cancel_local(&self, ids: Vec<i32>) -> crate::Result<()> {
+        self.0
+            .run_mobile_plugin_async("cancelLocal", CancelLocalArgs { ids })
+            .await
+            .map_err(Into::into)
+    }
+
+    pub async fn get_pending_local(&self) -> crate::Result<PendingLocal> {
+        self.0
+            .run_mobile_plugin_async("getPendingLocal", ())
+            .await
+            .map_err(Into::into)
+    }
 }

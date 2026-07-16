@@ -35,4 +35,17 @@ impl<R: Runtime> PushNotifications<R> {
     pub async fn start_notification_events(&self) -> crate::Result<()> {
         Ok(())
     }
+
+    pub async fn schedule_local(&self, _notification: LocalNotification) -> crate::Result<()> {
+        Err(Error::Unsupported(UNSUPPORTED))
+    }
+
+    pub async fn cancel_local(&self, _ids: Vec<i32>) -> crate::Result<()> {
+        // Cancelling what could never be scheduled is a harmless no-op.
+        Ok(())
+    }
+
+    pub async fn get_pending_local(&self) -> crate::Result<PendingLocal> {
+        Ok(PendingLocal { ids: Vec::new() })
+    }
 }

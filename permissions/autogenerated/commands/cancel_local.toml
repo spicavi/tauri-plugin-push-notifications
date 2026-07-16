@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-cancel-local"
+description = "Enables the cancel_local command without any pre-configured scope."
+commands.allow = ["cancel_local"]
+
+[[permission]]
+identifier = "deny-cancel-local"
+description = "Denies the cancel_local command without any pre-configured scope."
+commands.deny = ["cancel_local"]

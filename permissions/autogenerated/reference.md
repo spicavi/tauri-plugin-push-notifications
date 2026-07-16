@@ -9,6 +9,8 @@ Default permissions for the push-notifications plugin.
 - Push registration (`register_for_push`) — returns the device token.
 - Notification events (`register_listener`, `remove_listener`,
   `start_notification_events`).
+- Local scheduled notifications (`schedule_local`, `cancel_local`,
+  `get_pending_local`) — OS-local reminders, no server involved.
 
 Note: these are Tauri IPC permissions. Delivery is additionally gated by the
 OS notification permission — nothing arrives unless the user granted the
@@ -22,6 +24,9 @@ system prompt.
 - `allow-start-notification-events`
 - `allow-register-listener`
 - `allow-remove-listener`
+- `allow-schedule-local`
+- `allow-cancel-local`
+- `allow-get-pending-local`
 
 ## Permission Table
 
@@ -31,6 +36,58 @@ system prompt.
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`push-notifications:allow-cancel-local`
+
+</td>
+<td>
+
+Enables the cancel_local command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`push-notifications:deny-cancel-local`
+
+</td>
+<td>
+
+Denies the cancel_local command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`push-notifications:allow-get-pending-local`
+
+</td>
+<td>
+
+Enables the get_pending_local command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`push-notifications:deny-get-pending-local`
+
+</td>
+<td>
+
+Denies the get_pending_local command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>
@@ -158,6 +215,32 @@ Enables the request_permission command without any pre-configured scope.
 <td>
 
 Denies the request_permission command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`push-notifications:allow-schedule-local`
+
+</td>
+<td>
+
+Enables the schedule_local command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`push-notifications:deny-schedule-local`
+
+</td>
+<td>
+
+Denies the schedule_local command without any pre-configured scope.
 
 </td>
 </tr>

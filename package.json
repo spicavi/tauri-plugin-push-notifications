@@ -1,6 +1,6 @@
 {
   "name": "@spicavi/tauri-plugin-push-notifications",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Push notifications for Tauri 2 apps — APNs device tokens on iOS, FCM on Android, with foreground-receive and tap events.",
   "license": "MIT",
   "author": "spicavi <avisaksham@gmail.com>",

@@ -11,6 +11,8 @@ Default permissions for the push-notifications plugin.
 - Push registration (`register_for_push`) — returns the device token.
 - Notification events (`register_listener`, `remove_listener`,
   `start_notification_events`).
+- Local scheduled notifications (`schedule_local`, `cancel_local`,
+  `get_pending_local`) — OS-local reminders, no server involved.
 
 Note: these are Tauri IPC permissions. Delivery is additionally gated by the
 OS notification permission — nothing arrives unless the user granted the
@@ -23,4 +25,7 @@ permissions = [
   "allow-start-notification-events",
   "allow-register-listener",
   "allow-remove-listener",
+  "allow-schedule-local",
+  "allow-cancel-local",
+  "allow-get-pending-local",
 ]

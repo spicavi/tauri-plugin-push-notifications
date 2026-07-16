@@ -71,6 +71,54 @@ export async function registerForPush(): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
+// Local scheduled notifications (reminders)
+// ---------------------------------------------------------------------------
+
+/**
+ * An OS-local notification to schedule — a reminder, no server involved.
+ * Taps arrive through {@link onNotificationTapped} exactly like push taps,
+ * carrying `data`.
+ */
+export interface LocalNotification {
+	/** Stable 32-bit integer id — scheduling the same id again REPLACES the
+	 *  pending notification (the resync primitive). */
+	id: number;
+	title: string;
+	body?: string;
+	/** Epoch milliseconds to fire at. Past instants fire immediately. */
+	atMs: number;
+	/** Custom key/value bag delivered back on tap (deep-link routing data). */
+	data?: Record<string, string>;
+}
+
+/**
+ * Schedule an OS-local notification. iOS: `UNTimeIntervalNotificationTrigger`
+ * (survives app termination, not device restart-before-fire edge cases).
+ * Android: inexact `AlarmManager` while-idle alarm (minute-ish precision; does
+ * NOT survive reboot) — resync by re-scheduling on every launch.
+ * Desktop: rejects with `Unsupported`.
+ */
+export async function scheduleLocalNotification(
+	notification: LocalNotification,
+): Promise<void> {
+	await invoke('plugin:push-notifications|schedule_local', { notification });
+}
+
+/** Cancel pending (and dismiss delivered) local notifications by id. */
+export async function cancelLocalNotifications(ids: number[]): Promise<void> {
+	await invoke('plugin:push-notifications|cancel_local', { ids });
+}
+
+/** Ids of scheduled-but-not-yet-fired local notifications. Advisory on
+ *  Android (a ledger — reboot drops alarms without updating it). */
+export async function getPendingLocalNotifications(): Promise<number[]> {
+	const pending = await invoke<{ ids: number[] }>(
+		'plugin:push-notifications|get_pending_local',
+	);
+	return pending.ids;
+}
+
+// ---------------------------------------------------------------------------
 // Events
 // ---------------------------------------------------------------------------
 

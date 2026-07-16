@@ -12,5 +12,9 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+        <!-- Posts scheduled local notifications when their alarms fire. -->
+        <receiver
+            android:name="app.tauri.pushnotifications.LocalNotificationPublisher"
+            android:exported="false" />
     </application>
 </manifest>

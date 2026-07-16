@@ -41,6 +41,25 @@ struct NotificationPayload: Encodable {
     let data: [String: String]
 }
 
+struct ScheduleLocalArgs: Decodable {
+    /// Stable i32 — re-scheduling the same id replaces the pending request.
+    let id: Int
+    let title: String
+    let body: String?
+    /// Epoch milliseconds to fire at; past instants fire ~immediately.
+    let atMs: Double
+    /// Delivered back through `notificationTapped` as the `data` bag.
+    let data: [String: String]?
+}
+
+struct CancelLocalArgs: Decodable {
+    let ids: [Int]
+}
+
+struct PendingLocalPayload: Encodable {
+    let ids: [Int]
+}
+
 @available(iOS 15.0, *)
 class PushNotificationsPlugin: Plugin, UNUserNotificationCenterDelegate {
     /// The instance the swizzled AppDelegate hooks report back to. A Tauri
@@ -123,6 +142,52 @@ class PushNotificationsPlugin: Plugin, UNUserNotificationCenterDelegate {
             }
             self.queuedTaps.removeAll()
             invoke.resolve()
+        }
+    }
+
+    // MARK: Local scheduled notifications (reminders)
+
+    /// Schedule an OS-local notification. Same-id scheduling REPLACES the
+    /// pending request (UNUserNotificationCenter semantics) — callers resync
+    /// by re-scheduling with deterministic ids. Taps flow through the same
+    /// `notificationTapped` event as push taps (`didReceive` reads userInfo);
+    /// foreground firings keep the system banner (`willPresent` only mutes
+    /// PUSH presentations).
+    @objc public func scheduleLocal(_ invoke: Invoke) throws {
+        let args = try invoke.parseArgs(ScheduleLocalArgs.self)
+        let content = UNMutableNotificationContent()
+        content.title = args.title
+        if let body = args.body { content.body = body }
+        if let data = args.data { content.userInfo = data }
+        content.sound = .default
+        let seconds = max(1, (args.atMs / 1000) - Date().timeIntervalSince1970)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: seconds, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: String(args.id), content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                invoke.reject("scheduling failed: \(error.localizedDescription)")
+            } else {
+                invoke.resolve()
+            }
+        }
+    }
+
+    @objc public func cancelLocal(_ invoke: Invoke) throws {
+        let args = try invoke.parseArgs(CancelLocalArgs.self)
+        let ids = args.ids.map(String.init)
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: ids)
+        center.removeDeliveredNotifications(withIdentifiers: ids)
+        invoke.resolve()
+    }
+
+    /// Ids of still-pending local requests. Only numeric identifiers are
+    /// ours (push notifications never enter the pending store).
+    @objc public func getPendingLocal(_ invoke: Invoke) {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            let ids = requests.compactMap { Int($0.identifier) }
+            invoke.resolve(PendingLocalPayload(ids: ids))
         }
     }
 
